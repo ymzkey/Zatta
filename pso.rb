@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 class Particle
-  attr_accessor :x,:fitness
+  attr_accessor :x,:fitness,:localbest
   def initialize(x,v)
     @x = x #place
     @v = v #speed
@@ -8,6 +8,7 @@ class Particle
     @c1 = 0.7
     @c2 = 0.7
     @fitness = Float::MAX
+    @localbest = self.x
   end
 
   def update(best,localbest,minx,maxx)
@@ -15,7 +16,8 @@ class Particle
     @x = minx if @x < minx
     @x = maxx if @x > maxx
     #p "#{@x}:#{@v}"
-    @v = @w*@v + @c1*rand()*(best.x - @x) + @c2*rand()*(localbest.x - @x)
+    @localbest = localbest
+    @v = @w*@v + @c1*rand()*(best.x - @x) + @c2*rand()*(@localbest - @x)
   end
 end
 
@@ -47,7 +49,9 @@ class Optimus
   def process()
     best = self.best_particle()
     @particles.each{|particle|
-      particle.update(best,local_best_particle(particle.x),
+      localbest = particle.localbest
+      localbest = particle.x if self.get_fittines(particle.x) < self.get_fittines(particle.localbest)
+      particle.update(best,localbest,
                       @minx,@maxx)
       particle.fitness = self.get_fittines(particle.x)
     }
